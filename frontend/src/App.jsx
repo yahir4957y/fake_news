@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { SignedIn, SignedOut, SignInButton, SignUpButton, UserButton } from "@clerk/clerk-react";
 import "./App.css";
 
 // Contenido más profesional para el sistema
@@ -35,8 +36,22 @@ function App() {
       <nav className="navbar">
         <h2 className="logo">FakeNews<span>AI</span></h2>
         <div className="nav-buttons">
-          <button className="btn-outline">Iniciar sesión</button>
-          <button className="btn-primary">Registrarse</button>
+          
+          {/* LO QUE VEN LOS USUARIOS NO LOGUEADOS */}
+          <SignedOut>
+            <SignInButton mode="modal">
+              <button className="btn-outline">Iniciar sesión</button>
+            </SignInButton>
+            <SignUpButton mode="modal">
+              <button className="btn-primary">Registrarse</button>
+            </SignUpButton>
+          </SignedOut>
+
+          {/* LO QUE VEN LOS USUARIOS LOGUEADOS (Su foto de Google) */}
+          <SignedIn>
+            <UserButton afterSignOutUrl="/" />
+          </SignedIn>
+
         </div>
       </nav>
 
@@ -54,7 +69,16 @@ function App() {
           </div>
         </div>
 
-        <button className="btn-start">Comenzar Análisis</button>
+        {}
+        <SignedIn>
+            <button className="btn-start">Comenzar Análisis</button>
+        </SignedIn>
+        <SignedOut>
+            <SignInButton mode="modal">
+               <button className="btn-start">Inicia sesión para comenzar</button>
+            </SignInButton>
+        </SignedOut>
+        
       </section>
 
     </div>
