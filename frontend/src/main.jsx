@@ -5,10 +5,10 @@ import './index.css'
 import { ClerkProvider } from '@clerk/clerk-react'
 
 // Aquí pegas tu Publishable Key de la imagen que me pasaste
-const PUBLISHABLE_KEY = VITE_CLERK_PUBLISHABLE_KEY;
+const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
 
 if (!PUBLISHABLE_KEY) {
-  throw new Error("Falta la llave de Clerk en el archivo .env")
+  throw new Error("")
 }
 
 ReactDOM.createRoot(document.getElementById('root')).render(

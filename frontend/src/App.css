@@ -1,7 +1,7 @@
 :root {
-  --primary: #3b82f6;       /* Azul informativo */
-  --accent: #22c55e;        /* Verde de acción */
-  --danger: #ef4444;        /* Para alertas de fake news */
+  --primary: #3b82f6;
+  --accent: #22c55e;
+  --danger: #ef4444;
   --bg-dark: #0f172a;
   --bg-light: #1e293b;
   --glass: rgba(255, 255, 255, 0.05);
@@ -12,7 +12,7 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  font-family: 'Inter', system-ui, sans-serif; /* Fuente más moderna */
+  font-family: 'Inter', system-ui, sans-serif;
 }
 
 .container {
@@ -26,7 +26,7 @@
 .navbar {
   display: flex;
   justify-content: space-between;
-  padding: 20px 8%; /* Padding relativo para mejor responsividad */
+  padding: 20px 8%;
   align-items: center;
   backdrop-filter: blur(10px);
   background: rgba(15, 23, 42, 0.8);
@@ -35,12 +35,18 @@
   z-index: 100;
 }
 
+/* 🔥 FIX AQUÍ */
 .logo {
   font-size: 24px;
   font-weight: 800;
   letter-spacing: -1px;
+
   background: linear-gradient(to right, #3b82f6, #60a5fa);
+
+  background-clip: text;
   -webkit-background-clip: text;
+
+  color: transparent;
   -webkit-text-fill-color: transparent;
 }
 
@@ -50,7 +56,7 @@
   border-radius: 8px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.3s ease;
   border: none;
 }
 
@@ -90,7 +96,7 @@
   filter: brightness(1.1);
 }
 
-/* --- Hero Section --- */
+/* --- Hero --- */
 .hero {
   height: calc(100vh - 80px);
   display: flex;
@@ -102,7 +108,7 @@
 }
 
 .hero h1 {
-  font-size: clamp(32px, 5vw, 60px); /* Tamaño fluido */
+  font-size: clamp(32px, 5vw, 60px);
   font-weight: 800;
   max-width: 800px;
   line-height: 1.1;
@@ -110,10 +116,10 @@
 }
 
 .hero h1 span {
-  color: var(--danger); /* Para resaltar "Fake News" si lo usas en un span */
+  color: var(--danger);
 }
 
-/* --- Carrusel (Efecto Glassmorphism) --- */
+/* --- Carrusel --- */
 .carousel {
   width: 90%;
   max-width: 800px;
@@ -125,7 +131,7 @@
   border-radius: 20px;
   margin-top: 40px;
   box-shadow: 0 20px 40px rgba(0,0,0,0.3);
-  transition: transform 0.4s ease;
+  transition: 0.3s;
 }
 
 .carousel:hover {
@@ -133,7 +139,7 @@
   border-color: rgba(59, 130, 246, 0.5);
 }
 
-
+/* Animación */
 .slide-content {
   animation: fadeIn 0.8s ease-out;
 }
@@ -149,14 +155,14 @@
   }
 }
 
-
+/* Textos */
 .logo span, h1 span {
-  color: #3b82f6; 
+  color: #3b82f6;
   font-weight: 800;
 }
 
 .carousel p {
   font-size: 1.1rem;
   line-height: 1.6;
-  color: #cbd5e1; 
+  color: #cbd5e1;
 }
