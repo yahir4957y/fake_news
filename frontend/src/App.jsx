@@ -1,8 +1,15 @@
 import { useState, useEffect } from "react";
-import { SignedIn, SignedOut, SignInButton, SignUpButton, UserButton } from "@clerk/clerk-react";
+import {
+  SignedIn,
+  SignedOut,
+  SignInButton,
+  SignUpButton,
+  UserButton
+} from "@clerk/clerk-react";
 import "./App.css";
+import Dashboard from "./pages/Dashboard";
 
-// Contenido más profesional para el sistema
+// Carrusel
 const slides = [
   {
     title: "Detección Precisa",
@@ -24,64 +31,62 @@ function App() {
   useEffect(() => {
     const interval = setInterval(() => {
       setIndex((prev) => (prev + 1) % slides.length);
-    }, 4000); // 4 segundos es ideal para leer frases cortas
+    }, 4000);
 
     return () => clearInterval(interval);
   }, []);
 
   return (
-    <div className="container">
-      
-      {/* Navbar */}
-      <nav className="navbar">
-        <h2 className="logo">FakeNews<span>AI</span></h2>
-        <div className="nav-buttons">
-          
-          {/* LO QUE VEN LOS USUARIOS NO LOGUEADOS */}
-          <SignedOut>
+    <>
+      {/* 🔐 SI ESTA LOGUEADO → DASHBOARD */}
+      <SignedIn>
+        <Dashboard />
+      </SignedIn>
+
+      {/* 🚪 SI NO ESTA LOGUEADO → LANDING */}
+      <SignedOut>
+        <div className="container">
+
+          {/* NAVBAR */}
+          <nav className="navbar">
+            <h2 className="logo">FakeNews<span>AI</span></h2>
+
+            <div className="nav-buttons">
+              <SignInButton mode="modal">
+                <button className="btn-outline">Iniciar sesión</button>
+              </SignInButton>
+
+              <SignUpButton mode="modal">
+                <button className="btn-primary">Registrarse</button>
+              </SignUpButton>
+            </div>
+          </nav>
+
+          {/* HERO */}
+          <section className="hero">
+            <h1>
+              Detecta la verdad tras la <span>desinformación</span>
+            </h1>
+
+            {/* Carrusel */}
+            <div className="carousel">
+              <div key={index} className="slide-content">
+                <h3 style={{ color: "var(--primary)", marginBottom: "10px" }}>
+                  {slides[index].title}
+                </h3>
+                <p>{slides[index].text}</p>
+              </div>
+            </div>
+
             <SignInButton mode="modal">
-              <button className="btn-outline">Iniciar sesión</button>
+              <button className="btn-start">
+                Comenzar Análisis
+              </button>
             </SignInButton>
-            <SignUpButton mode="modal">
-              <button className="btn-primary">Registrarse</button>
-            </SignUpButton>
-          </SignedOut>
-
-          {/* LO QUE VEN LOS USUARIOS LOGUEADOS (Su foto de Google) */}
-          <SignedIn>
-            <UserButton afterSignOutUrl="/" />
-          </SignedIn>
-
+          </section>
         </div>
-      </nav>
-
-      {/* Hero */}
-      <section className="hero">
-        <h1>Detecta la verdad tras la <span>desinformación</span></h1>
-
-        {/* Carrusel con animación */}
-        <div className="carousel">
-          <div key={index} className="slide-content">
-            <h3 style={{ color: "var(--primary)", marginBottom: "10px" }}>
-                {slides[index].title}
-            </h3>
-            <p>{slides[index].text}</p>
-          </div>
-        </div>
-
-        {}
-        <SignedIn>
-            <button className="btn-start">Comenzar Análisis</button>
-        </SignedIn>
-        <SignedOut>
-            <SignInButton mode="modal">
-               <button className="btn-start">Inicia sesión para comenzar</button>
-            </SignInButton>
-        </SignedOut>
-        
-      </section>
-
-    </div>
+      </SignedOut>
+    </>
   );
 }
 
