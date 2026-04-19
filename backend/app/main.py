@@ -1,11 +1,21 @@
-# main.py
-from fastapi import FastAPI, Depends  # Añade esto aquí
-from app.infrastructure.auth_handler import get_current_user
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from app.api.routes import analisis
 
-app = FastAPI()  # Tienes que inicializar 'app' antes de usar @app.post
+app = FastAPI(title="FakeNewsAI Backend")
 
-@app.post("/analizar")
-async def analizar_contenido(datos: dict, user = Depends(get_current_user)):
-    # Si el código llega aquí, es porque el login de Google fue exitoso
-    print(f"Usuario verificado: {user['sub']}")
-    return {"status": "procesando", "usuario_id": user['sub']}
+# Configuración CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"], 
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+@app.get("/")
+def read_root():
+    return {"status": "API online y conectada a la matrix"}
+
+# Conectar el router (la ruta será http://localhost:8000/api/analisis/)
+app.include_router(analisis.router)
