@@ -1,5 +1,9 @@
 # RECOPILACION DE HERRAMIENTAS Y TECNOLOGIAS NECESARIAS PARA EL DESPLIEGUE
 
+# =========================
+# BACKEND - Python / FastAPI
+# =========================
+
 # Herramientas necesarias en el sistema:
 # - Python 3.10 o superior
 # - pip
@@ -30,6 +34,10 @@ pydantic
 # Ejecutar desde la carpeta backend:
 # uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
 
+
+# ======================
+# FRONTEND - React / Vite
+# ======================
 
 # Herramientas necesarias en el sistema:
 # - Node.js 18 o superior
@@ -62,6 +70,10 @@ pydantic
 # Ejecutar desde la carpeta frontend:
 # npm run dev -- --host 127.0.0.1 --port 5173
 
+
+# ======================
+# ORDEN DE LEVANTAMIENTO
+# ======================
 
 # 1. Iniciar backend en:
 #    http://127.0.0.1:8000
