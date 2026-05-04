@@ -71,6 +71,8 @@ export default function DashboardCenter({ history, setHistory }) {
           confidence: data.score_credibilidad || 0,
           date: new Date().toLocaleString(),
           details: data.detalles || "Sin detalles adicionales",
+          context: data.contexto || "",
+          sources: data.fuentes_confiables || [],
         };
 
         setResult(newRecord);
@@ -254,11 +256,47 @@ export default function DashboardCenter({ history, setHistory }) {
               result.result.includes("Fake") ? "fake" : "real"
             }`}
           >
-            {result.result} &nbsp;•&nbsp; Confianza de IA: {result.confidence}%
+            <div style={{ fontSize: "1.1rem", fontWeight: "bold", marginBottom: "8px" }}>
+              {result.result} &nbsp;•&nbsp; Confianza de IA: {result.confidence}%
+            </div>
             {result.details && (
-              <p style={{ fontSize: "0.8rem", marginTop: "5px", opacity: 0.9 }}>
-                {result.details}
+              <p style={{ fontSize: "0.9rem", marginTop: "5px", opacity: 0.9 }}>
+                <strong>Análisis:</strong> {result.details}
               </p>
+            )}
+            {result.context && (
+              <div style={{ marginTop: "12px", padding: "10px", backgroundColor: "rgba(0,0,0,0.2)", borderRadius: "6px" }}>
+                <p style={{ fontSize: "0.85rem", opacity: 0.9, margin: 0 }}>
+                  <strong>Contexto:</strong> {result.context}
+                </p>
+              </div>
+            )}
+            {result.sources && result.sources.length > 0 && (
+              <div style={{ marginTop: "15px" }}>
+                <strong style={{ fontSize: "0.85rem", display: "block", marginBottom: "5px" }}>Fuentes para Verificar:</strong>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+                  {result.sources.map((src, idx) => (
+                    <a 
+                      key={idx} 
+                      href={src.url} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      style={{
+                        fontSize: "0.8rem",
+                        padding: "5px 10px",
+                        backgroundColor: "rgba(255,255,255,0.1)",
+                        color: "white",
+                        textDecoration: "none",
+                        borderRadius: "4px",
+                        border: "1px solid rgba(255,255,255,0.2)",
+                        transition: "all 0.2s"
+                      }}
+                    >
+                      🔗 {src.nombre}
+                    </a>
+                  ))}
+                </div>
+              </div>
             )}
           </div>
         )}

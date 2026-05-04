@@ -6,7 +6,7 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
 security = HTTPBearer()
 
-CLERK_JWKS_URL = "https://cuddly-dory-21.clerk.accounts.dev/.well-known/jwks.json"
+CLERK_JWKS_URL = "https://renewing-monitor-87.clerk.accounts.dev/.well-known/jwks.json"
 
 def get_current_user(res: HTTPAuthorizationCredentials = Depends(security)):
     token = res.credentials
