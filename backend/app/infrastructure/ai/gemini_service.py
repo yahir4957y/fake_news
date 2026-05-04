@@ -6,7 +6,7 @@ from PIL import Image
 from dotenv import load_dotenv
 
 load_dotenv()
-genai.configure(api_key=os.getenv("AIzaSyBsCufoYLFXMQEbf5hmFRgQDb0wlYKghqk"))
+genai.configure(api_key=os.getenv("AIzaSyBTQAMP7fxTXYzrXex2QlCiV57jtFNmpXY"))
 
 class GeminiService:
     def __init__(self):
@@ -15,16 +15,36 @@ class GeminiService:
     def analizar_contenido(self, texto: str = None, imagen_bytes: bytes = None):
         prompt = """
         Eres un experto analista de ciberseguridad y fact-checking. 
-        Analiza el contenido proporcionado. Si es una imagen, extrae el texto (OCR), describe el contexto visual y evalúa si parece manipulada.
-        Si es texto o URL, analiza la semántica buscando patrones de desinformación, clickbait o fuentes falsas.
+        Analiza el contenido proporcionado. Si es imagen, extrae el texto y evalúa el contexto. Si es texto/URL, busca patrones de desinformación.
         
-        Responde ÚNICA Y EXCLUSIVAMENTE con un objeto JSON válido con esta estructura exacta, sin texto adicional:
+        TAREA CRÍTICA - GENERACIÓN DE FUENTES:
+        1. Identifica el "TEMA PRINCIPAL" de la noticia (ej. "Terremoto en Japón", "Nueva ley de impuestos", "Cura del cáncer"). Máximo 5 palabras.
+        2. Convierte los espacios de ese tema en el símbolo "+" (ej. "Terremoto+en+Japon").
+        3. Construye EXACTAMENTE estos 3 enlaces usando ese tema convertido:
+           - Enlace 1 (Google Noticias): https://news.google.com/search?q=[TEMA_CON_MAS]
+           - Enlace 2 (Búsqueda de desmentidos): https://www.google.com/search?q=[TEMA_CON_MAS]+verdad+o+falso+fact+check
+           - Enlace 3 (Búsqueda en agencias oficiales): https://www.google.com/search?q=site:factual.afp.com+OR+site:chequeado.com+OR+site:reuters.com+[TEMA_CON_MAS]
+        
+        Responde ÚNICA Y EXCLUSIVAMENTE con un objeto JSON válido con esta estructura exacta:
         {
             "resultado": "Real" o "Fake",
-            "score_credibilidad": un número entero del 0 al 100,
-            "detalles": "Breve explicación de por qué es real o fake",
-            "recomendacion": "Qué debería hacer el usuario con esta info"
-
+            "score_credibilidad": 85,
+            "detalles": "Explicación técnica de por qué es real o fake...",
+            "recomendacion": "Recomendación para el usuario...",
+            "fuentes": [
+                {
+                    "nombre": "📰 Ver cobertura en Google Noticias",
+                    "url": "https://news.google.com/search?q=..."
+                },
+                {
+                    "nombre": "🔎 Buscar análisis de Fact-Checkers",
+                    "url": "https://www.google.com/search?q=..."
+                },
+                {
+                    "nombre": "🛡️ Revisar en Agencias Oficiales (AFP/Reuters)",
+                    "url": "https://www.google.com/search?q=site:factual.afp.com+..."
+                }
+            ]
         }
         """
         
