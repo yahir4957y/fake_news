@@ -17,5 +17,4 @@ app.add_middleware(
 def read_root():
     return {"status": "API online y conectada a la matrix"}
 
-# Conectar el router (la ruta será http://localhost:8000/api/analisis/)
 app.include_router(analisis.router)

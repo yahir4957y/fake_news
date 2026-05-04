@@ -1,7 +1,12 @@
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
 import { useAuth } from "@clerk/clerk-react";
-import "./DashboardCenter.css"; // 🌟 IMPORTAMOS EL NUEVO CSS
+import "./DashboardCenter.css";
+
+// 🌟 IMPORTAMOS TUS COMPONENTES MODULARES
+import SubidaImagen from "./SubidaImagen";
+import InputTexto from "./InputTexto";
+import InputUrl from "./InputUrl";
 
 const LOADING_MESSAGES = [
   "Iniciando motores de Inteligencia Artificial...",
@@ -13,7 +18,6 @@ const LOADING_MESSAGES = [
 
 export default function DashboardCenter({ history, setHistory }) {
   const { getToken } = useAuth();
-  const fileInputRef = useRef(null);
 
   const [type, setType] = useState("texto");
   const [videoMode, setVideoMode] = useState("url");
@@ -34,10 +38,12 @@ export default function DashboardCenter({ history, setHistory }) {
     { name: "Fake", value: fakeCount },
   ];
 
-  const handleFileChange = (e) => {
-    if (e.target.files && e.target.files[0]) {
-      setFile(e.target.files[0]);
-    }
+  // 🔥 NUEVA FUNCIÓN: Limpia todos los estados sin recargar la página
+  const handleNuevaConsulta = () => {
+    setResult(null);
+    setFeedback(null);
+    setInputVal("");
+    setFile(null);
   };
 
   const handleAnalyze = async () => {
@@ -91,13 +97,14 @@ export default function DashboardCenter({ history, setHistory }) {
           date: new Date().toLocaleString(),
           details: data.detalles || "Sin detalles",
           recomendacion: data.recomendacion || "",
-          fuentes: data.fuentes || []
+          fuentes: data.fuentes || [],
+          context: data.context || null,
+          sources: data.sources || []
         };
 
         setResult(newRecord);
         setHistory([newRecord, ...history]);
       } else {
-        // 🛡️ AQUÍ CAPTURAMOS EL ERROR 429 DE TOKENS (Rate Limit)
         if (response.status === 429) {
           setFeedback({ 
             type: "warning", 
@@ -118,20 +125,6 @@ export default function DashboardCenter({ history, setHistory }) {
       }, 1000);
     }
   };
-
-  const UploadZone = ({ accept }) => (
-    <div 
-      className={`upload-zone ${file ? 'active' : ''}`}
-      onClick={() => fileInputRef.current.click()}
-    >
-      <input type="file" accept={accept} style={{ display: "none" }} ref={fileInputRef} onChange={handleFileChange} />
-      <div className="upload-icon">{file ? "📄" : "📁"}</div>
-      <h4 className="upload-title">{file ? file.name : "Haz clic o arrastra tu archivo aquí"}</h4>
-      <p className="upload-subtitle">
-        {file ? `${(file.size / 1024 / 1024).toFixed(2)} MB` : `Formatos soportados: ${accept}`}
-      </p>
-    </div>
-  );
 
   return (
     <main className="center-panel">
@@ -176,9 +169,28 @@ export default function DashboardCenter({ history, setHistory }) {
         </div>
 
         <div className="input-area">
-          {type === "texto" && <textarea className="input-field" rows="5" placeholder="Pega el artículo o fragmento aquí..." value={inputVal} onChange={(e) => setInputVal(e.target.value)} />}
-          {type === "url" && <input type="text" className="input-field" placeholder="Ej: https://x.com/noticia-sospechosa" value={inputVal} onChange={(e) => setInputVal(e.target.value)} />}
-          {type === "imagen" && <UploadZone accept="image/*" />}
+          {/* 🔥 USAMOS LOS NUEVOS COMPONENTES MODULARES 🔥 */}
+          {type === "texto" && (
+            <InputTexto 
+              value={inputVal} 
+              onChange={(e) => setInputVal(e.target.value)} 
+            />
+          )}
+          
+          {type === "url" && (
+            <InputUrl 
+              value={inputVal} 
+              onChange={(e) => setInputVal(e.target.value)} 
+            />
+          )}
+          
+          {type === "imagen" && (
+            <SubidaImagen 
+              file={file} 
+              setFile={setFile} 
+            />
+          )}
+          
           {type === "video" && (
             <div style={{ width: "100%" }}>
               <div className="sub-tabs">
@@ -186,9 +198,12 @@ export default function DashboardCenter({ history, setHistory }) {
                 <button className={`sub-tab-btn ${videoMode === "file" ? "active" : ""}`} onClick={() => setVideoMode("file")}>Subir Archivo</button>
               </div>
               {videoMode === "url" ? (
-                <input type="text" className="input-field" placeholder="Enlace de YouTube, TikTok..." value={inputVal} onChange={(e) => setInputVal(e.target.value)} />
+                <InputUrl 
+                  value={inputVal} 
+                  onChange={(e) => setInputVal(e.target.value)} 
+                />
               ) : (
-                <UploadZone accept="video/*" />
+                <p style={{color: '#64748b', textAlign: 'center', padding: '20px 0'}}>Módulo de video en construcción...</p>
               )}
             </div>
           )}
@@ -217,32 +232,91 @@ export default function DashboardCenter({ history, setHistory }) {
         )}
 
         {result && !loading && (
-          <div className={`result-container ${result.result.includes("Fake") ? "is-fake" : "is-real"}`}>
-            <div className="result-header">
-              <h3 className="result-title">{result.result}</h3>
-              <span className="result-confidence">CONFIANZA: {result.confidence}%</span>
-            </div>
-            
-            <p className="result-details">{result.details}</p>
-
-            {result.fuentes && result.fuentes.length > 0 && (
-              <div className="sources-container">
-                <h5 className="sources-title">🔗 Enlaces de Fact-Checking:</h5>
-                <div className="sources-list">
-                  {result.fuentes.map((fuente, idx) => {
-                    const isObject = typeof fuente === 'object';
-                    const nombre = isObject ? fuente.nombre : fuente;
-                    const url = isObject ? fuente.url : `https://www.google.com/search?q=${encodeURIComponent(fuente)}`;
-
-                    return (
-                      <a key={idx} href={url} target="_blank" rel="noopener noreferrer" className="source-link">
-                        <span className="source-icon">🌐</span> {nombre}
-                      </a>
-                    );
-                  })}
-                </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+            <div className={`result-container ${result.result.includes("Fake") ? "is-fake" : "is-real"}`}>
+              <div className="result-header">
+                <h3 className="result-title">{result.result}</h3>
+                <span className="result-confidence">CONFIANZA: {result.confidence}%</span>
               </div>
-            )}
+              
+              <p className="result-details">{result.details}</p>
+
+              {result.fuentes && result.fuentes.length > 0 && (
+                <div className="sources-container">
+                  <h5 className="sources-title">🔗 Enlaces de Fact-Checking:</h5>
+                  <div className="sources-list">
+                    {result.fuentes.map((fuente, idx) => {
+                      const isObject = typeof fuente === 'object';
+                      const nombre = isObject ? fuente.nombre : fuente;
+                      const url = isObject ? fuente.url : `https://www.google.com/search?q=${encodeURIComponent(fuente)}`;
+
+                      return (
+                        <a key={idx} href={url} target="_blank" rel="noopener noreferrer" className="source-link">
+                          <span className="source-icon">🌐</span> {nombre}
+                        </a>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+              {result.context && (
+                <div style={{ marginTop: "12px", padding: "10px", backgroundColor: "rgba(0,0,0,0.2)", borderRadius: "6px" }}>
+                  <p style={{ fontSize: "0.85rem", opacity: 0.9, margin: 0 }}>
+                    <strong>Contexto:</strong> {result.context}
+                  </p>
+                </div>
+              )}
+              {result.sources && result.sources.length > 0 && (
+                <div style={{ marginTop: "15px" }}>
+                  <strong style={{ fontSize: "0.85rem", display: "block", marginBottom: "5px" }}>Fuentes para Verificar:</strong>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+                    {result.sources.map((src, idx) => (
+                      <a 
+                        key={idx} 
+                        href={src.url} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        style={{
+                          fontSize: "0.8rem",
+                          padding: "5px 10px",
+                          backgroundColor: "rgba(255,255,255,0.1)",
+                          color: "white",
+                          textDecoration: "none",
+                          borderRadius: "4px",
+                          border: "1px solid rgba(255,255,255,0.2)",
+                          transition: "all 0.2s"
+                        }}
+                      >
+                        🔗 {src.nombre}
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* 🔥 BOTÓN PARA NUEVA CONSULTA 🔥 */}
+            <div style={{ display: "flex", justifyContent: "center", marginTop: "10px" }}>
+              <button 
+                onClick={handleNuevaConsulta}
+                style={{
+                  backgroundColor: "#3b82f6",
+                  color: "white",
+                  padding: "12px 30px",
+                  borderRadius: "8px",
+                  fontWeight: "bold",
+                  border: "none",
+                  cursor: "pointer",
+                  fontSize: "1rem",
+                  boxShadow: "0 4px 6px rgba(0,0,0,0.3)",
+                  transition: "background 0.2s"
+                }}
+                onMouseOver={(e) => e.target.style.backgroundColor = "#2563eb"}
+                onMouseOut={(e) => e.target.style.backgroundColor = "#3b82f6"}
+              >
+                🔄 Realizar Nueva Consulta
+              </button>
+            </div>
           </div>
         )}
       </div>

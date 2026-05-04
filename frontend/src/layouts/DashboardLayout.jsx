@@ -2,15 +2,17 @@ import { useState, useEffect } from "react";
 import { useUser, UserButton } from "@clerk/clerk-react";
 import Sidebar from "../components/Sidebar.jsx";
 import DashboardCenter from "../pages/DashboardCenter.jsx";
-import "./DashboardLayout.css";
+import "./DashboardLayout.css"; 
 
 export default function DashboardLayout() {
-  // 1. Extraemos isLoaded para evitar renderizados prematuros
   const { user, isLoaded } = useUser();
   const [history, setHistory] = useState([]);
 
+  // 🔥 ESTADOS PARA EL MODAL FLOTANTE
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [analisisSeleccionado, setAnalisisSeleccionado] = useState(null);
+
   useEffect(() => {
-    // 2. Try-Catch protector para leer el almacenamiento local
     try {
       const data = JSON.parse(localStorage.getItem("history")) || [];
       setHistory(data);
@@ -25,7 +27,17 @@ export default function DashboardLayout() {
     setHistory(newHistory);
   };
 
-  // 3. Pantalla de carga suave mientras Clerk verifica la sesión
+  // 🔥 FUNCIONES DEL MODAL
+  const handleAbrirModal = (item) => {
+    setAnalisisSeleccionado(item);
+    setIsModalOpen(true);
+  };
+
+  const handleCerrarModal = () => {
+    setIsModalOpen(false);
+    setAnalisisSeleccionado(null);
+  };
+
   if (!isLoaded) {
     return (
       <div style={{ display: "flex", height: "100vh", alignItems: "center", justifyContent: "center", backgroundColor: "#0f172a", color: "#3b82f6" }}>
@@ -51,22 +63,66 @@ export default function DashboardLayout() {
               {user?.primaryEmailAddress?.emailAddress}
             </span>
           </div>
-          
-          {/* Avatar de Google con menú de perfil y cierre de sesión integrado */}
           <UserButton 
             afterSignOutUrl="/" 
-            appearance={{ 
-              elements: { avatarBox: { width: 42, height: 42, border: "2px solid #1e293b" } } 
-            }} 
+            appearance={{ elements: { avatarBox: { width: 42, height: 42, border: "2px solid #1e293b" } } }} 
           />
         </div>
       </header>
 
       {/* ÁREA PRINCIPAL */}
       <main className="dashboard-main" style={{ display: 'flex', height: 'calc(100vh - 75px)' }}>
-        <Sidebar history={history} />
+        <Sidebar history={history} onAbrirModal={handleAbrirModal} />
         <DashboardCenter history={history} setHistory={saveHistory} />
       </main>
+
+      {/* 🔥 EL MODAL FLOTANTE OPTIMIZADO (Solo texto) */}
+      {isModalOpen && analisisSeleccionado && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            
+            <button className="modal-close" onClick={handleCerrarModal}>
+              ✖
+            </button>
+
+            <h2 style={{ margin: "0 0 5px 0", color: "#f8fafc" }}>
+              Resumen del Análisis
+            </h2>
+            <p style={{ margin: "0", color: "#94a3b8", fontSize: "0.9rem" }}>
+              Analizado el {analisisSeleccionado.date}
+            </p>
+
+            <div className="modal-info">
+              
+              {/* Cuadro superior con Resumen Rápido */}
+              <div className="modal-row-container">
+                <div>
+                  <span style={{ color: "#94a3b8", fontSize: "0.85rem", textTransform: "uppercase", letterSpacing: "1px" }}>Resultado Final</span>
+                  <span className={analisisSeleccionado.result.includes('Real') ? 'badge-real' : 'badge-fake'}>
+                    {analisisSeleccionado.result}
+                  </span>
+                </div>
+                
+                <div style={{ alignItems: "flex-end" }}>
+                  <span style={{ color: "#94a3b8", fontSize: "0.85rem", textTransform: "uppercase", letterSpacing: "1px" }}>Nivel de Certeza</span>
+                  <span style={{ fontSize: "1.8rem", fontWeight: "bold", color: "#f8fafc" }}>
+                    {analisisSeleccionado.confidence}%
+                  </span>
+                </div>
+              </div>
+
+              {/* Cuadro Grande de Detalles Técnicos */}
+              <div className="modal-details">
+                <h3 style={{ margin: "0 0 10px 0", color: "#e2e8f0", fontSize: "1.1rem" }}>Detalles Técnicos y Justificación:</h3>
+                <p>
+                  {analisisSeleccionado.details || "El análisis se completó sin detalles adicionales."}
+                </p>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

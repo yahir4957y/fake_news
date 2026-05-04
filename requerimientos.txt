@@ -1,0 +1,85 @@
+# RECOPILACION DE HERRAMIENTAS Y TECNOLOGIAS NECESARIAS PARA EL DESPLIEGUE
+
+# =========================
+# BACKEND - Python / FastAPI
+# =========================
+
+# Herramientas necesarias en el sistema:
+# - Python 3.10 o superior
+# - pip
+
+# Instalacion sugerida dentro del entorno del proyecto backend:
+# Ejecutar desde la raiz del proyecto:
+# cd backend
+# python -m venv .venv
+# .\.venv\Scripts\Activate.ps1
+# pip install fastapi "uvicorn[standard]" python-multipart pillow python-dotenv google-generativeai psycopg2-binary "python-jose[cryptography]" requests pydantic
+
+# Librerias detectadas en el backend:
+fastapi
+uvicorn[standard]
+python-multipart
+pillow
+python-dotenv
+google-generativeai
+psycopg2-binary
+python-jose[cryptography]
+requests
+pydantic
+
+# Variables esperadas:
+# - backend/.env
+
+# Levantar servidor backend:
+# Ejecutar desde la carpeta backend:
+# uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
+
+
+# ======================
+# FRONTEND - React / Vite
+# ======================
+
+# Herramientas necesarias en el sistema:
+# - Node.js 18 o superior
+# - npm
+
+# Instalacion de dependencias del frontend:
+# Ejecutar desde la carpeta frontend:
+# npm install
+
+# Dependencias declaradas en frontend/package.json:
+# - @clerk/clerk-react
+# - @clerk/localizations
+# - react
+# - react-dom
+# - recharts
+# - @babel/core
+# - @eslint/js
+# - @rolldown/plugin-babel
+# - @types/react
+# - @types/react-dom
+# - @vitejs/plugin-react
+# - babel-plugin-react-compiler
+# - eslint
+# - eslint-plugin-react-hooks
+# - eslint-plugin-react-refresh
+# - globals
+# - vite
+
+# Levantar servidor frontend:
+# Ejecutar desde la carpeta frontend:
+# npm run dev -- --host 127.0.0.1 --port 5173
+
+
+# ======================
+# ORDEN DE LEVANTAMIENTO
+# ======================
+
+# 1. Iniciar backend en:
+#    http://127.0.0.1:8000
+#
+# 2. Iniciar frontend en:
+#    http://127.0.0.1:5173
+#
+# 3. El frontend consume el backend en:
+#    http://localhost:8000/api/analisis/
