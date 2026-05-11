@@ -2,14 +2,14 @@ import google.generativeai as genai
 import os
 import json
 import io
-import datetime # 🔥 1. IMPORTAMOS DATETIME
+import datetime 
 from PIL import Image
 from dotenv import load_dotenv
 
 load_dotenv()
 
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
->>>>>>> db6fd11 (feat: admin dashboard con métricas reales de Supabase)
+
 
 class GeminiService:
     def __init__(self):
