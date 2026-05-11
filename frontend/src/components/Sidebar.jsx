@@ -1,6 +1,7 @@
 import { useState } from "react";
 
-export default function Sidebar({ history }) {
+// 🔥 1. Recibimos onAbrirModal como propiedad
+export default function Sidebar({ history, onAbrirModal }) {
   const [filter, setFilter] = useState("all");
 
   const filteredHistory = history.filter(item => {
@@ -24,7 +25,15 @@ export default function Sidebar({ history }) {
         {filteredHistory.length === 0 && <p style={{color: "#64748b", fontSize: "0.85rem"}}>No hay verificaciones recientes.</p>}
         
         {filteredHistory.map((item, i) => (
-          <div key={i} className={`history-card ${item.result.includes("Fake") ? "fake" : "real"}`}>
+          // 🔥 2. Agregamos el onClick y el cursor-pointer
+          <div 
+            key={i} 
+            className={`history-card ${item.result.includes("Fake") ? "fake" : "real"}`}
+            onClick={() => onAbrirModal && onAbrirModal(item)}
+            style={{ cursor: "pointer", transition: "transform 0.2s" }}
+            onMouseOver={(e) => e.currentTarget.style.transform = "scale(1.02)"}
+            onMouseOut={(e) => e.currentTarget.style.transform = "scale(1)"}
+          >
             <div style={{display: "flex", justifyContent: "space-between", marginBottom: "8px"}}>
               <strong style={{color: "#cbd5e1", textTransform: "uppercase", fontSize: "0.7rem", letterSpacing: "0.5px"}}>{item.type}</strong>
               <small style={{color: "#64748b", fontSize: "0.7rem"}}>{item.confidence}% certidumbre</small>
