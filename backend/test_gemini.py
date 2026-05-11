@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 
 # Cargar tu llave
 load_dotenv()
-genai.configure(api_key=os.getenv("AIzaSyBsCufoYLFXMQEbf5hmFRgQDb0wlYKghqk"))
+genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 
 print("Buscando modelos disponibles para tu API Key...\n")
 

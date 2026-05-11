@@ -1,27 +1,22 @@
-from app.infrastructure.db.db_conexion import get_connection
+from app.infrastructure.db.db_conexion import get_supabase
 
 class ContenidoRepository:
-    def guardar_contenido(self, tipo: str, texto: str = None, url: str = None):
-        conexion = get_connection()
-        cursor = conexion.cursor()
-        
-        try:
+    def __init__(self):
+        self.supabase = get_supabase()
 
-            query = """
-                INSERT INTO contenidos (tipo, texto, url, estado)
-                VALUES (%s, %s, %s, 'pendiente')
-                RETURNING id;
-            """
-            cursor.execute(query, (tipo, texto, url))
-            nuevo_id = cursor.fetchone()[0] # Obtenemos el UUID generado
-            
-            conexion.commit()
-            return nuevo_id
-            
+    def guardar_contenido(self, tipo: str, texto: str = None, url: str = None) -> str:
+        """Guarda un contenido en Supabase y retorna su ID."""
+        try:    
+            response = self.supabase.table("contenidos").insert({
+                "tipo": tipo,
+                "texto": texto,
+                "url": url,
+                "estado": "pendiente"
+            }).execute()
+
+            if response.data:
+                return response.data[0]["id"]
+            raise Exception("No se pudo guardar el contenido en Supabase")
+
         except Exception as e:
-            conexion.rollback()
-            raise Exception(f"Error al guardar en BD: {str(e)}")
-            
-        finally:
-            cursor.close()
-            conexion.close()
+            raise Exception(f"Error en ContenidoRepository.guardar_contenido: {str(e)}")
