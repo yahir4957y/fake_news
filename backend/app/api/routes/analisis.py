@@ -27,6 +27,7 @@ from bs4 import BeautifulSoup
 # ══════════════════════════════════════════════════════════════════════════════
 
 router = APIRouter(prefix="/api/analisis", tags=["Analisis"])
+<<<<<<< HEAD
 
 repo = ContenidoRepository()
 ia_service = GeminiService()
@@ -218,3 +219,7 @@ def obtener_historial(user=Depends(get_current_user)):
     except Exception as e:
         print(f"Error al obtener historial: {str(e)}")
         raise HTTPException(status_code=500, detail="No se pudo recuperar el historial.")
+=======
+
+# TODO: agregar endpoints de análisis (texto, URL, imagen)
+>>>>>>> db6fd11 (feat: admin dashboard con métricas reales de Supabase)

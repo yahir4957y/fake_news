@@ -7,8 +7,9 @@ from PIL import Image
 from dotenv import load_dotenv
 
 load_dotenv()
-# ¡Ojo! Asegúrate de que esta clave sea la correcta o usa os.getenv("GEMINI_API_KEY") si la tienes en tu .env
-genai.configure(api_key=os.getenv("AIzaSyBTQAMP7fxTXYzrXex2QlCiV57jtFNmpXY"))
+
+genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+>>>>>>> db6fd11 (feat: admin dashboard con métricas reales de Supabase)
 
 class GeminiService:
     def __init__(self):

@@ -1,18 +1,16 @@
-import psycopg2
 import os
+from supabase import create_client, Client
 from dotenv import load_dotenv
 
-# Cargamos las variables de entorno
 load_dotenv()
 
-def get_connection():
-    # Obtenemos la URL de Supabase desde el .env
-    database_url = os.getenv("DATABASE_URL")
-    
-    try:
-        # Nos conectamos usando la URL completa
-        conexion = psycopg2.connect(database_url)
-        return conexion
-    except Exception as e:
-        print(f"❌ Error crítico conectando a Supabase: {e}")
-        raise e
+SUPABASE_URL = os.getenv("SUPABASE_URL")
+SUPABASE_KEY = os.getenv("SUPABASE_SERVICE_KEY")
+
+def get_supabase() -> Client:
+    """Retorna el cliente de Supabase listo para usar."""
+    if not SUPABASE_URL or not SUPABASE_KEY:
+        raise Exception(
+            "Faltan variables SUPABASE_URL o SUPABASE_SERVICE_KEY en el .env"
+        )
+    return create_client(SUPABASE_URL, SUPABASE_KEY)

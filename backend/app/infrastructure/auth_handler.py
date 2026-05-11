@@ -6,7 +6,6 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from app.infrastructure.repositories.usuario_repo import UsuarioRepository # <-- Asegúrate de crear este repo
 
 security = HTTPBearer()
-user_repo = UsuarioRepository()
 
 # URL de tu instancia de Clerk (Confirmada)
 CLERK_JWKS_URL = "https://cuddly-dory-21.clerk.accounts.dev/.well-known/jwks.json"
@@ -28,42 +27,16 @@ def get_jwks():
     return _jwks_cache
 
 def get_current_user(res: HTTPAuthorizationCredentials = Depends(security)):
+    """Verifica el token de Clerk y retorna el payload del usuario."""
+
+    # Si no hay token (auth desactivada temporalmente), retorna usuario local
+    if res is None:
+        return {"user_id": "usuario-local"}
+
     token = res.credentials
-    jwks = get_jwks()
-
-    if not jwks:
-        raise HTTPException(
-            status_code=500, 
-            detail="Error de configuración en el servidor de autenticación"
-        )
-
     try:
-        # 1. Validamos la firma del token
-        payload = jwt.decode(
-            token, 
-            jwks, 
-            algorithms=["RS256"], 
-            options={
-                "verify_aud": False,
-                "verify_at_hash": False
-            }
-        )
-
-        # 2. Extraemos la info del usuario desde el Token
-        usuario_id = payload.get("sub") # El ID de Clerk (user_3CEx...)
-        
-        # Clerk guarda el email y nombre en estos campos del claims
-        email = payload.get("email") or payload.get("upn") or "sin_email@app.com"
-        nombre = payload.get("name") or "Usuario Nuevo"
-
-        # 3. 🌟 LA SOLUCIÓN PROFESIONAL: Sincronización Just-In-Time
-        # Esto evita el error de Foreign Key porque crea al usuario si no existe
-        user_repo.asegurar_usuario(
-            usuario_id=usuario_id, 
-            email=email, 
-            nombre=nombre
-        )
-
+        jwks = requests.get(CLERK_JWKS_URL).json()
+        payload = jwt.decode(token, jwks, algorithms=["RS256"], options={"verify_aud": False})
         return payload
 
     except Exception as e:
