@@ -1,33 +1,47 @@
 import { useState, useEffect } from "react";
-import { useUser, UserButton } from "@clerk/clerk-react";
+import { useUser, useAuth, UserButton } from "@clerk/clerk-react";
 import Sidebar from "../components/Sidebar.jsx";
 import DashboardCenter from "../pages/DashboardCenter.jsx";
 import "./DashboardLayout.css"; 
 
 export default function DashboardLayout() {
   const { user, isLoaded } = useUser();
+  const { getToken } = useAuth();
+  
   const [history, setHistory] = useState([]);
-
-  // 🔥 ESTADOS PARA EL MODAL FLOTANTE
+  const [isLoadingHistory, setIsLoadingHistory] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [analisisSeleccionado, setAnalisisSeleccionado] = useState(null);
 
   useEffect(() => {
-    try {
-      const data = JSON.parse(localStorage.getItem("history")) || [];
-      setHistory(data);
-    } catch (error) {
-      console.error("Error leyendo el historial:", error);
-      setHistory([]);
+    const fetchHistorial = async () => {
+      try {
+        setIsLoadingHistory(true);
+        const token = await getToken();
+        const response = await fetch("http://localhost:8000/api/analisis/historial", {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          setHistory(data);
+        }
+      } catch (error) {
+        console.error("Error cargando historial de BD:", error);
+      } finally {
+        setIsLoadingHistory(false);
+      }
+    };
+
+    if (isLoaded && user) {
+      fetchHistorial();
     }
-  }, []);
+  }, [isLoaded, user, getToken]);
 
   const saveHistory = (newHistory) => {
-    localStorage.setItem("history", JSON.stringify(newHistory));
     setHistory(newHistory);
   };
 
-  // 🔥 FUNCIONES DEL MODAL
   const handleAbrirModal = (item) => {
     setAnalisisSeleccionado(item);
     setIsModalOpen(true);
@@ -48,7 +62,6 @@ export default function DashboardLayout() {
 
   return (
     <div className="dashboard-wrapper">
-      {/* TOPBAR PROFESIONAL */}
       <header className="topbar" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem 2rem', backgroundColor: '#020617', borderBottom: '1px solid #1e293b' }}>
         <h2 className="logo" style={{ fontSize: "1.4rem", margin: 0, color: "white" }}>
           FakeNews<span style={{ color: "#3b82f6" }}>AI</span>
@@ -70,16 +83,22 @@ export default function DashboardLayout() {
         </div>
       </header>
 
-      {/* ÁREA PRINCIPAL */}
       <main className="dashboard-main" style={{ display: 'flex', height: 'calc(100vh - 75px)' }}>
-        <Sidebar history={history} onAbrirModal={handleAbrirModal} />
-        <DashboardCenter history={history} setHistory={saveHistory} />
+        <Sidebar 
+          history={history} 
+          onAbrirModal={handleAbrirModal} 
+          loading={isLoadingHistory} 
+        />
+        <DashboardCenter 
+          history={history} 
+          setHistory={saveHistory} 
+          loadingHistory={isLoadingHistory} 
+        />
       </main>
 
-      {/* 🔥 EL MODAL FLOTANTE OPTIMIZADO (Solo texto) */}
       {isModalOpen && analisisSeleccionado && (
-        <div className="modal-overlay">
-          <div className="modal-content">
+        <div className="modal-overlay" onClick={handleCerrarModal}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             
             <button className="modal-close" onClick={handleCerrarModal}>
               ✖
@@ -94,7 +113,6 @@ export default function DashboardLayout() {
 
             <div className="modal-info">
               
-              {/* Cuadro superior con Resumen Rápido */}
               <div className="modal-row-container">
                 <div>
                   <span style={{ color: "#94a3b8", fontSize: "0.85rem", textTransform: "uppercase", letterSpacing: "1px" }}>Resultado Final</span>
@@ -111,7 +129,6 @@ export default function DashboardLayout() {
                 </div>
               </div>
 
-              {/* Cuadro Grande de Detalles Técnicos */}
               <div className="modal-details">
                 <h3 style={{ margin: "0 0 10px 0", color: "#e2e8f0", fontSize: "1.1rem" }}>Detalles Técnicos y Justificación:</h3>
                 <p>

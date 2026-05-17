@@ -2,23 +2,22 @@ import google.generativeai as genai
 import os
 import json
 import io
-import datetime # 🔥 1. IMPORTAMOS DATETIME
+import datetime 
 from PIL import Image
 from dotenv import load_dotenv
 
 load_dotenv()
-# ¡Ojo! Asegúrate de que esta clave sea la correcta o usa os.getenv("GEMINI_API_KEY") si la tienes en tu .env
-genai.configure(api_key=os.getenv("AIzaSyBTQAMP7fxTXYzrXex2QlCiV57jtFNmpXY"))
+
+genai.configure(api_key=os.getenv("AIzaSyCmCLzp-jLf8B3r7GPcV7F9CSYcsa5BiWk"))
 
 class GeminiService:
     def __init__(self):
         self.model = genai.GenerativeModel('gemini-2.5-flash')
 
     def analizar_contenido(self, texto: str = None, imagen_bytes: bytes = None):
-        # 🔥 2. DEFINIMOS LA FECHA ACTUAL AQUÍ
+
         fecha_actual = datetime.datetime.now().strftime("%d de %B de %Y")
         
-        # 🔥 3. CORREGIMOS EL TYPO Y USAMOS LA VARIABLE
         prompt = f"""
         Eres un experto analista de ciberseguridad y fact-checking. 
         

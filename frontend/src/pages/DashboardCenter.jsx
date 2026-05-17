@@ -1,12 +1,12 @@
 import { useState } from "react";
-import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid } from "recharts";
 import { useAuth } from "@clerk/clerk-react";
 import "./DashboardCenter.css";
 
-// 🌟 IMPORTAMOS TUS COMPONENTES MODULARES
 import SubidaImagen from "./SubidaImagen";
 import InputTexto from "./InputTexto";
 import InputUrl from "./InputUrl";
+import ModuloVideo from "./ModuloVideo";
 
 const LOADING_MESSAGES = [
   "Iniciando motores de Inteligencia Artificial...",
@@ -16,7 +16,7 @@ const LOADING_MESSAGES = [
   "Casi listo, preparando tu veredicto final..."
 ];
 
-export default function DashboardCenter({ history, setHistory }) {
+export default function DashboardCenter({ history, setHistory, loadingHistory }) {
   const { getToken } = useAuth();
 
   const [type, setType] = useState("texto");
@@ -31,14 +31,21 @@ export default function DashboardCenter({ history, setHistory }) {
   const [feedback, setFeedback] = useState(null);
   const [result, setResult] = useState(null);
 
-  const realCount = history.filter((h) => h.result.includes("Real")).length;
-  const fakeCount = history.filter((h) => h.result.includes("Fake")).length;
-  const chartData = [
+  const realCount = history.filter(h => h.result.includes("Real")).length;
+  const fakeCount = history.filter(h => h.result.includes("Fake")).length;
+  
+  const pieData = [
     { name: "Real", value: realCount },
-    { name: "Fake", value: fakeCount },
+    { name: "Fake", value: fakeCount }
   ];
 
-  // 🔥 NUEVA FUNCIÓN: Limpia todos los estados sin recargar la página
+  const typeData = [
+    { name: "Texto", cant: history.filter(h => h.type === "texto").length },
+    { name: "URL", cant: history.filter(h => h.type === "url").length },
+    { name: "Imagen", cant: history.filter(h => h.type === "imagen").length },
+    { name: "Video", cant: history.filter(h => h.type === "video").length },
+  ];
+
   const handleNuevaConsulta = () => {
     setResult(null);
     setFeedback(null);
@@ -92,9 +99,9 @@ export default function DashboardCenter({ history, setHistory }) {
       if (response.ok) {
         const newRecord = {
           type,
-          result: data.resultado === "Fake" ? "Fake ❌" : "Real 🟢",
+          result: (data.resultado === "Real" || data.resultado === "verificado") ? "Real 🟢" : "Fake ❌",
           confidence: data.score_credibilidad || 0,
-          date: new Date().toLocaleString(),
+          date: new Date().toLocaleString('es-BO'),
           details: data.detalles || "Sin detalles",
           recomendacion: data.recomendacion || "",
           fuentes: data.fuentes || [],
@@ -130,30 +137,65 @@ export default function DashboardCenter({ history, setHistory }) {
     <main className="center-panel">
       <div className="panel-header">
         <h1>Análisis de Contenido</h1>
-        <p className="panel-subtitle">Despliega el poder de la IA para detectar desinformación.</p>
+        <p className="panel-subtitle">Historial sincronizado con Supabase Cloud</p>
       </div>
 
-      <div className="dashboard-grid">
-        <div className="stats-wrapper">
-          <div className="stat-box"><h4>Consultas Totales</h4><p>{history.length}</p></div>
-          <div className="stat-box"><h4>Contenido Real</h4><p className="text-real">{realCount}</p></div>
-          <div className="stat-box"><h4>Desinformación</h4><p className="text-fake">{fakeCount}</p></div>
+      {loadingHistory ? (
+        <div className="loading-history-container">
+          <div className="spinner"></div>
+          <p>Sincronizando con la base de datos...</p>
         </div>
-        <div className="chart-box">
-          {history.length > 0 ? (
-            <ResponsiveContainer width="100%" height={160}>
-              <PieChart>
-                <Pie data={chartData} cx="50%" cy="50%" innerRadius={45} outerRadius={70} dataKey="value" stroke="none">
-                  <Cell fill="#22c55e" /><Cell fill="#ef4444" />
-                </Pie>
-                <Tooltip contentStyle={{ background: "#0f172a", border: "1px solid #1e293b", color: "white", borderRadius: "8px" }} />
-              </PieChart>
-            </ResponsiveContainer>
-          ) : (
-            <div className="empty-chart">Aún no hay datos</div>
-          )}
+      ) : history.length === 0 ? (
+        <div className="empty-state">
+          <h3>🚀 ¡Bienvenido, Analista!</h3>
+          <p>Tu historial está vacío. Realiza tu primer análisis abajo para empezar a recolectar datos.</p>
         </div>
-      </div>
+      ) : (
+        <div className="charts-container" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '20px', marginBottom: '20px' }}>
+          
+          <div className="stats-wrapper" style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <div className="stat-box"><h4>Consultas Totales</h4><p>{history.length}</p></div>
+            <div className="stat-box"><h4>Contenido Real</h4><p className="text-real">{realCount}</p></div>
+            <div className="stat-box"><h4>Desinformación</h4><p className="text-fake">{fakeCount}</p></div>
+          </div>
+
+          {/* Gráfico Circular */}
+          <div className="chart-box">
+             <h4>Distribución de Veracidad</h4>
+             {/* 🔥 Cambiamos a height="100%" y le damos un minHeight */}
+             <div style={{ width: '100%', height: '250px' }}>
+               <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie data={pieData} innerRadius={60} outerRadius={85} dataKey="value" stroke="none">
+                      <Cell fill="#22c55e" /><Cell fill="#ef4444" />
+                    </Pie>
+                    <Tooltip contentStyle={{ background: "#0f172a", border: "1px solid #1e293b", color: "white", borderRadius: "8px" }} />
+                  </PieChart>
+               </ResponsiveContainer>
+             </div>
+          </div>
+
+          {/* Gráfico de Barras */}
+          <div className="chart-box">
+             <h4>Tipos de Contenido Analizado</h4>
+             {/* 🔥 Igual aquí, contenedor fijo para que Recharts se expanda bonito */}
+             <div style={{ width: '100%', height: '250px' }}>
+               <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={typeData} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
+                    <XAxis dataKey="name" stroke="#94a3b8" fontSize={13} tickLine={false} axisLine={false} />
+                    <YAxis stroke="#94a3b8" fontSize={13} tickLine={false} axisLine={false} allowDecimals={false} />
+                    <Tooltip 
+                      cursor={{ fill: 'rgba(59, 130, 246, 0.1)' }} 
+                      contentStyle={{ background: "#0f172a", border: "1px solid #1e293b", borderRadius: "8px" }}
+                    />
+                    <Bar dataKey="cant" fill="#3b82f6" radius={[6, 6, 0, 0]} barSize={40} />
+                  </BarChart>
+               </ResponsiveContainer>
+             </div>
+          </div>
+
+        </div>
+      )}
 
       <div className="analysis-container">
         <div className="input-tabs">
@@ -169,43 +211,18 @@ export default function DashboardCenter({ history, setHistory }) {
         </div>
 
         <div className="input-area">
-          {/* 🔥 USAMOS LOS NUEVOS COMPONENTES MODULARES 🔥 */}
-          {type === "texto" && (
-            <InputTexto 
-              value={inputVal} 
-              onChange={(e) => setInputVal(e.target.value)} 
-            />
-          )}
-          
-          {type === "url" && (
-            <InputUrl 
-              value={inputVal} 
-              onChange={(e) => setInputVal(e.target.value)} 
-            />
-          )}
-          
-          {type === "imagen" && (
-            <SubidaImagen 
+          {type === "texto" && <InputTexto value={inputVal} onChange={(e) => setInputVal(e.target.value)} />}
+          {type === "url" && <InputUrl value={inputVal} onChange={(e) => setInputVal(e.target.value)} />}
+          {type === "imagen" && <SubidaImagen file={file} setFile={setFile} />}
+          {type === "video" && (
+            <ModuloVideo 
+              inputVal={inputVal} 
+              setInputVal={setInputVal} 
               file={file} 
               setFile={setFile} 
+              videoMode={videoMode}
+              setVideoMode={setVideoMode}
             />
-          )}
-          
-          {type === "video" && (
-            <div style={{ width: "100%" }}>
-              <div className="sub-tabs">
-                <button className={`sub-tab-btn ${videoMode === "url" ? "active" : ""}`} onClick={() => setVideoMode("url")}>Enlace Web</button>
-                <button className={`sub-tab-btn ${videoMode === "file" ? "active" : ""}`} onClick={() => setVideoMode("file")}>Subir Archivo</button>
-              </div>
-              {videoMode === "url" ? (
-                <InputUrl 
-                  value={inputVal} 
-                  onChange={(e) => setInputVal(e.target.value)} 
-                />
-              ) : (
-                <p style={{color: '#64748b', textAlign: 'center', padding: '20px 0'}}>Módulo de video en construcción...</p>
-              )}
-            </div>
           )}
         </div>
 
@@ -295,7 +312,6 @@ export default function DashboardCenter({ history, setHistory }) {
               )}
             </div>
 
-            {/* 🔥 BOTÓN PARA NUEVA CONSULTA 🔥 */}
             <div style={{ display: "flex", justifyContent: "center", marginTop: "10px" }}>
               <button 
                 onClick={handleNuevaConsulta}

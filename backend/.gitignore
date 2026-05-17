@@ -1,0 +1,22 @@
+# Entornos virtuales
+venv/
+env/
+.venv/
+
+# API keys y archivos de configuración
+.env
+.env.*
+*.pem
+
+# Archivos cacheados de Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Logs y bases de datos locales
+*.log
+*.sqlite3
+
+# Herramientas del sistema operativo
+.DS_Store
+Thumbs.db

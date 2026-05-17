@@ -5,7 +5,6 @@ class UsuarioRepository:
         conexion = get_connection()
         try:
             with conexion.cursor() as cursor:
-                # Usamos ON CONFLICT para que si el ID ya existe, no haga nada (o actualice)
                 query = """
                     INSERT INTO usuarios (id, email, nombre)
                     VALUES (%s, %s, %s)

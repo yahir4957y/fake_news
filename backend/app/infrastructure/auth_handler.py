@@ -8,10 +8,9 @@ from app.infrastructure.repositories.usuario_repo import UsuarioRepository # <--
 security = HTTPBearer()
 user_repo = UsuarioRepository()
 
-# URL de tu instancia de Clerk (Confirmada)
+
 CLERK_JWKS_URL = "https://cuddly-dory-21.clerk.accounts.dev/.well-known/jwks.json"
 
-# Caché global para las llaves públicas
 _jwks_cache = None
 
 def get_jwks():
@@ -38,7 +37,7 @@ def get_current_user(res: HTTPAuthorizationCredentials = Depends(security)):
         )
 
     try:
-        # 1. Validamos la firma del token
+      
         payload = jwt.decode(
             token, 
             jwks, 
@@ -49,15 +48,14 @@ def get_current_user(res: HTTPAuthorizationCredentials = Depends(security)):
             }
         )
 
-        # 2. Extraemos la info del usuario desde el Token
-        usuario_id = payload.get("sub") # El ID de Clerk (user_3CEx...)
+       
+        usuario_id = payload.get("sub") 
         
-        # Clerk guarda el email y nombre en estos campos del claims
-        email = payload.get("email") or payload.get("upn") or "sin_email@app.com"
+       
+        email = payload.get("email") or payload.get("upn") or f"{usuario_id}@sin_email.com"
         nombre = payload.get("name") or "Usuario Nuevo"
 
-        # 3. 🌟 LA SOLUCIÓN PROFESIONAL: Sincronización Just-In-Time
-        # Esto evita el error de Foreign Key porque crea al usuario si no existe
+   
         user_repo.asegurar_usuario(
             usuario_id=usuario_id, 
             email=email, 

@@ -6,7 +6,7 @@
   padding: 2rem;
   overflow-y: auto;
   color: #f8fafc;
-  background-color: #030712; /* Mismo fondo que tu Layout */
+  background-color: #030712; 
 }
 
 .panel-header {
@@ -24,18 +24,23 @@
   font-size: 0.95rem;
 }
 
-/* 📊 ESTADÍSTICAS Y GRÁFICO */
+/* 📊 ESTADÍSTICAS Y GRÁFICO (SECCIÓN ACTUALIZADA) */
+
+/* Contenedor principal del Dashboard */
 .dashboard-grid {
-  display: grid;
-  grid-template-columns: 1fr 300px;
-  gap: 1.5rem;
-  margin-bottom: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+  margin-bottom: 30px;
+  width: 100%;
 }
 
+/* FILA 1: Tarjetas de números (3 columnas) */
 .stats-wrapper {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 1rem;
+  gap: 20px;
+  width: 100%;
 }
 
 .stat-box {
@@ -71,14 +76,36 @@
 .text-real { color: #10b981 !important; }
 .text-fake { color: #ef4444 !important; }
 
+/* FILA 2: Gráficos (2 columnas) */
+.charts-container {
+  display: grid;
+  grid-template-columns: 1fr 1.5fr; /* El de barras más ancho que el círculo */
+  gap: 20px;
+  width: 100%;
+}
+
 .chart-box {
   background-color: #0f172a;
   border: 1px solid #1e293b;
   border-radius: 12px;
+  padding: 20px;
+  min-height: 320px; /* 🔥 Esto evita que se aplasten */
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  padding: 1rem;
+}
+
+.chart-box h4 {
+  margin-bottom: 20px;
+  color: #f8fafc;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+/* Contenedor interno para Recharts */
+.recharts-wrapper-custom {
+  width: 100%;
+  height: 250px; /* Altura fija para el dibujo */
 }
 
 .empty-chart {
@@ -191,7 +218,7 @@
   box-shadow: none;
 }
 
-/* Drag & Drop (Tu componente de imagen) */
+/* Drag & Drop */
 .upload-zone {
   border: 2px dashed #334155;
   border-radius: 12px;
@@ -310,4 +337,45 @@
 .source-link:hover {
   border-color: #3b82f6;
   background: rgba(59, 130, 246, 0.1);
+}
+
+/* --- Efecto de Carga (Spinner) --- */
+.loading-history-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 200px;
+  color: #94a3b8;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid rgba(59, 130, 246, 0.1);
+  border-left-color: #3b82f6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 12px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* --- Empty State --- */
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  background: rgba(30, 41, 59, 0.3);
+  border: 1px dashed #334155;
+  border-radius: 12px;
+  color: #64748b;
+}
+
+/* Adaptación para dispositivos móviles */
+@media (max-width: 900px) {
+  .charts-container, .stats-wrapper { 
+    grid-template-columns: 1fr; 
+  }
 }

@@ -10,7 +10,7 @@ export default function InputUrl({ value, onChange }) {
           fontSize: "1.2rem",
           pointerEvents: "none",
           opacity: 0.7,
-          display: "flex", /* 🔥 Asegura que el ícono no tenga márgenes raros */
+          display: "flex",
           alignItems: "center"
         }}>
           🔗
@@ -22,10 +22,10 @@ export default function InputUrl({ value, onChange }) {
           value={value}
           onChange={onChange}
           style={{ 
-            padding: "0 16px 0 48px", /* 🔥 Forzamos padding 0 arriba y abajo, 48px a la izquierda */
+            padding: "0 16px 0 48px", 
             width: "100%", 
             height: "55px", 
-            lineHeight: "55px", /* 🔥 TRUCO: Iguala al height para centrar el texto verticalmente sí o sí */
+            lineHeight: "55px", 
             borderRadius: "10px",
             backgroundColor: "rgba(30, 41, 59, 0.5)",
             border: "1px solid #334155",
