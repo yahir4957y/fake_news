@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-genai.configure(api_key=os.getenv("AIzaSyCmCLzp-jLf8B3r7GPcV7F9CSYcsa5BiWk"))
+genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 
 class GeminiService:
     def __init__(self):

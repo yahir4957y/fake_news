@@ -10,7 +10,7 @@ load_dotenv()
 
 class GeminiVideoService:
     def __init__(self):
-        # 🔥 Usamos la llave exclusiva para video (Balanceo de cuotas)
+        
         self.api_key = os.getenv("GEMINI_VIDEO_API_KEY")
         
     def analizar_video(self, video_bytes: bytes, mime_type: str = "video/mp4"):
