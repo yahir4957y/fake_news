@@ -1,18 +1,22 @@
 from fastapi import APIRouter, HTTPException, Form, File, UploadFile, Depends, Request
 from typing import Optional
 import hashlib
+import traceback
 
 from app.infrastructure.repositories.contenido_repo import ContenidoRepository
+from app.infrastructure.repositories.token_usage_repo import TokenUsageRepository
 from app.infrastructure.ai.gemini_service import GeminiService
 from app.infrastructure.ai.gemini_video_service import GeminiVideoService 
 from app.infrastructure.utils.video_downloader import descargar_video
 from app.infrastructure.auth_handler import get_current_user
+from app.application.use_cases.manage_token_usage import ManageTokenUsage
 
 router = APIRouter(prefix="/api/analisis", tags=["Analisis"])
 
 repo = ContenidoRepository()
 ia_service = GeminiService()
 ia_video_service = GeminiVideoService()
+token_manager = ManageTokenUsage(TokenUsageRepository())
 
 @router.post("/")
 async def procesar_contenido(
@@ -92,7 +96,7 @@ async def procesar_contenido(
             )
 
         score = analisis_ia.get("score_credibilidad", 0)
-        nivel = analisis_ia.get("nivel_credibilidad", "baja")
+        nivel = analisis_ia.get("nivel_credibilidad") or analisis_ia.get("nivel_riesgo", "baja")
         resultado_texto = analisis_ia.get("resultado", "Fake")
 
         estado_final = "verificado" if resultado_texto.lower() == "real" else "desmentido"
@@ -113,6 +117,14 @@ async def procesar_contenido(
             modelo_ia="gemini-2.5-flash"
         )
 
+        tokens_used = int(analisis_ia.get("tokens_used") or 0)
+        if tokens_used > 0:
+            token_manager.record_usage(
+                usuario_id=usuario_id,
+                email=user.get("email") or user.get("upn") or "",
+                tokens_used=tokens_used
+            )
+
         return {
             "mensaje": "Análisis completado exitosamente",
             "contenido_id": contenido_id,
@@ -120,6 +132,12 @@ async def procesar_contenido(
             "estado": estado_final,
             "score_credibilidad": score,
             "nivel_credibilidad": nivel,
+            "nivel_riesgo": analisis_ia.get("nivel_riesgo"),
+            "veredicto_corto": analisis_ia.get("veredicto_corto"),
+            "analisis_contenido": analisis_ia.get("analisis_contenido"),
+            "indicadores": analisis_ia.get("indicadores", []),
+            "contexto_factual": analisis_ia.get("contexto_factual"),
+            "tecnicas_manipulacion": analisis_ia.get("tecnicas_manipulacion", []),
             "detalles": analisis_ia.get("detalles"),
             "recomendacion": analisis_ia.get("recomendacion"),
             "fuentes": analisis_ia.get("fuentes", [])
@@ -128,6 +146,7 @@ async def procesar_contenido(
     except Exception as e:
         error_msg = str(e).lower()
         print(f"Error en el flujo de análisis: {error_msg}")
+        traceback.print_exc()
 
         if contenido_id:
             try:

@@ -4,6 +4,7 @@ import os
 import json
 import tempfile
 import datetime
+import re
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -37,11 +38,24 @@ class GeminiVideoService:
            - Enlace 2 (Búsqueda de desmentidos): https://www.google.com/search?q=[TEMA_CON_MAS]+verdad+o+falso+fact+check
            - Enlace 3 (Agencias): https://www.google.com/search?q=site:factual.afp.com+OR+site:chequeado.com+OR+site:reuters.com+[TEMA_CON_MAS]
         
+        No agrupes todo en un solo párrafo. Divide el análisis en campos claros y profesionales.
+        "detalles" debe tener 2 a 4 párrafos breves separados por saltos de línea.
+        
         Responde ÚNICA Y EXCLUSIVAMENTE con un objeto JSON válido con esta estructura exacta:
         {{
             "resultado": "Real" o "Fake",
-            "score_credibilidad": 85.5,
+            "score_credibilidad": 85,
             "nivel_credibilidad": "alta",
+            "nivel_riesgo": "Bajo",
+            "veredicto_corto": "Una oración con el veredicto final del video",
+            "analisis_contenido": "Qué muestra o afirma el video, incluyendo texto visible y audio relevante",
+            "indicadores": [
+                {{"tipo": "positivo", "descripcion": "Señal concreta que apoya autenticidad o veracidad"}},
+                {{"tipo": "negativo", "descripcion": "Señal concreta de posible edición, deepfake o contexto engañoso"}},
+                {{"tipo": "neutro", "descripcion": "Dato contextual importante"}}
+            ],
+            "contexto_factual": "Contexto necesario para interpretar el video",
+            "tecnicas_manipulacion": ["Técnica detectada si aplica"],
             "detalles": "Explicación técnica de la edición del video, audio o contexto...",
             "recomendacion": "Recomendación para el usuario...",
             "fuentes": [
@@ -84,13 +98,22 @@ class GeminiVideoService:
                 
             print("\n✅ Video procesado. Analizando contenido...")
 
-            respuesta = model.generate_content([video_file, prompt])
+            respuesta = model.generate_content(
+                [video_file, prompt],
+                generation_config={
+                    "temperature": 0.2,
+                    "response_mime_type": "application/json",
+                }
+            )
+            usage = getattr(respuesta, 'usage_metadata', None)
+            tokens_used = getattr(usage, 'total_token_count', 0) if usage else 0
             
             genai.delete_file(video_file.name)
             
          
-            texto_limpio = respuesta.text.replace('```json', '').replace('```', '').strip()
-            return json.loads(texto_limpio)
+            resultado = self._parsear_json_respuesta(respuesta.text)
+            resultado['tokens_used'] = tokens_used
+            return resultado
             
         except Exception as e:
             raise Exception(f"Error en la IA de Video: {str(e)}")
@@ -99,3 +122,13 @@ class GeminiVideoService:
        
             if temp_video_path and os.path.exists(temp_video_path):
                 os.remove(temp_video_path)
+
+    def _parsear_json_respuesta(self, texto_respuesta: str):
+        texto_limpio = texto_respuesta.replace('```json', '').replace('```', '').strip()
+        try:
+            return json.loads(texto_limpio)
+        except json.JSONDecodeError:
+            match = re.search(r"\{.*\}", texto_limpio, re.DOTALL)
+            if match:
+                return json.loads(match.group(0))
+            raise

@@ -46,6 +46,14 @@ export default function DashboardCenter({ history, setHistory, loadingHistory })
     { name: "Video", cant: history.filter(h => h.type === "video").length },
   ];
 
+  const formatDetails = (details) => {
+    if (!details) return [];
+    return String(details)
+      .split(/\n+/)
+      .map((paragraph) => paragraph.trim())
+      .filter(Boolean);
+  };
+
   const handleNuevaConsulta = () => {
     setResult(null);
     setFeedback(null);
@@ -83,7 +91,17 @@ export default function DashboardCenter({ history, setHistory, loadingHistory })
       }
 
       setProgress(40);
-      const token = await getToken();
+      let token;
+      try {
+        token = await getToken();
+      } catch (authError) {
+        console.error("Error obteniendo token de Clerk:", authError);
+        setFeedback({
+          type: "error",
+          message: "No se pudo validar tu sesión con Clerk. Revisa que estés entrando por http://localhost:5173 y que el navegador no esté bloqueando Clerk."
+        });
+        return;
+      }
 
       setProgress(70);
       const response = await fetch("http://localhost:8000/api/analisis/", {
@@ -102,6 +120,12 @@ export default function DashboardCenter({ history, setHistory, loadingHistory })
           result: (data.resultado === "Real" || data.resultado === "verificado") ? "Real 🟢" : "Fake ❌",
           confidence: data.score_credibilidad || 0,
           date: new Date().toLocaleString('es-BO'),
+          nivelRiesgo: data.nivel_riesgo || data.nivel_credibilidad || "",
+          veredictoCorto: data.veredicto_corto || "",
+          analisisContenido: data.analisis_contenido || "",
+          indicadores: Array.isArray(data.indicadores) ? data.indicadores : [],
+          contextoFactual: data.contexto_factual || "",
+          tecnicasManipulacion: Array.isArray(data.tecnicas_manipulacion) ? data.tecnicas_manipulacion : [],
           details: data.detalles || "Sin detalles",
           recomendacion: data.recomendacion || "",
           fuentes: data.fuentes || [],
@@ -121,7 +145,7 @@ export default function DashboardCenter({ history, setHistory, loadingHistory })
           setFeedback({ type: "error", message: data.detail || "Error al procesar el contenido." });
         }
       }
-    } catch (error) {
+    } catch {
       setFeedback({ type: "error", message: "🔌 Error de conexión. Verifica que el servidor backend esté en línea." });
     } finally {
       clearInterval(messageInterval);
@@ -252,15 +276,80 @@ export default function DashboardCenter({ history, setHistory, loadingHistory })
           <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
             <div className={`result-container ${result.result.includes("Fake") ? "is-fake" : "is-real"}`}>
               <div className="result-header">
-                <h3 className="result-title">{result.result}</h3>
-                <span className="result-confidence">CONFIANZA: {result.confidence}%</span>
+                <div>
+                  <span className="result-kicker">Veredicto del análisis</span>
+                  <h3 className="result-title">{result.result}</h3>
+                </div>
+                <div className="result-score-card">
+                  <span>{result.confidence}%</span>
+                  <small>{result.nivelRiesgo || "Confianza"}</small>
+                </div>
               </div>
-              
-              <p className="result-details">{result.details}</p>
+
+              {result.veredictoCorto && (
+                <p className="result-verdict">{result.veredictoCorto}</p>
+              )}
+
+              <div className="result-grid">
+                {result.analisisContenido && (
+                  <section className="result-section">
+                    <h4>Qué afirma el contenido</h4>
+                    <p>{result.analisisContenido}</p>
+                  </section>
+                )}
+
+                {result.contextoFactual && (
+                  <section className="result-section">
+                    <h4>Contexto factual</h4>
+                    <p>{result.contextoFactual}</p>
+                  </section>
+                )}
+              </div>
+
+              {result.indicadores.length > 0 && (
+                <section className="result-section">
+                  <h4>Indicadores detectados</h4>
+                  <div className="indicator-list">
+                    {result.indicadores.map((indicador, idx) => (
+                      <div key={idx} className={`indicator-item ${indicador.tipo || "neutro"}`}>
+                        <span>{indicador.tipo || "neutro"}</span>
+                        <p>{indicador.descripcion || indicador}</p>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              )}
+
+              {result.tecnicasManipulacion.length > 0 && (
+                <section className="result-section">
+                  <h4>Técnicas de manipulación</h4>
+                  <div className="technique-list">
+                    {result.tecnicasManipulacion.map((tecnica, idx) => (
+                      <span key={idx}>{tecnica}</span>
+                    ))}
+                  </div>
+                </section>
+              )}
+
+              <section className="result-section">
+                <h4>Análisis técnico</h4>
+                <div className="result-details">
+                  {formatDetails(result.details).map((paragraph, idx) => (
+                    <p key={idx}>{paragraph}</p>
+                  ))}
+                </div>
+              </section>
+
+              {result.recomendacion && (
+                <section className="result-section recommendation">
+                  <h4>Recomendación</h4>
+                  <p>{result.recomendacion}</p>
+                </section>
+              )}
 
               {result.fuentes && result.fuentes.length > 0 && (
                 <div className="sources-container">
-                  <h5 className="sources-title">🔗 Enlaces de Fact-Checking:</h5>
+                  <h5 className="sources-title">Enlaces de fact-checking</h5>
                   <div className="sources-list">
                     {result.fuentes.map((fuente, idx) => {
                       const isObject = typeof fuente === 'object';
@@ -269,44 +358,10 @@ export default function DashboardCenter({ history, setHistory, loadingHistory })
 
                       return (
                         <a key={idx} href={url} target="_blank" rel="noopener noreferrer" className="source-link">
-                          <span className="source-icon">🌐</span> {nombre}
+                          <span className="source-icon">↗</span> {nombre}
                         </a>
                       );
                     })}
-                  </div>
-                </div>
-              )}
-              {result.context && (
-                <div style={{ marginTop: "12px", padding: "10px", backgroundColor: "rgba(0,0,0,0.2)", borderRadius: "6px" }}>
-                  <p style={{ fontSize: "0.85rem", opacity: 0.9, margin: 0 }}>
-                    <strong>Contexto:</strong> {result.context}
-                  </p>
-                </div>
-              )}
-              {result.sources && result.sources.length > 0 && (
-                <div style={{ marginTop: "15px" }}>
-                  <strong style={{ fontSize: "0.85rem", display: "block", marginBottom: "5px" }}>Fuentes para Verificar:</strong>
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
-                    {result.sources.map((src, idx) => (
-                      <a 
-                        key={idx} 
-                        href={src.url} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        style={{
-                          fontSize: "0.8rem",
-                          padding: "5px 10px",
-                          backgroundColor: "rgba(255,255,255,0.1)",
-                          color: "white",
-                          textDecoration: "none",
-                          borderRadius: "4px",
-                          border: "1px solid rgba(255,255,255,0.2)",
-                          transition: "all 0.2s"
-                        }}
-                      >
-                        🔗 {src.nombre}
-                      </a>
-                    ))}
                   </div>
                 </div>
               )}

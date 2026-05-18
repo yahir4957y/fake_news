@@ -3,6 +3,7 @@ import os
 import json
 import io
 import datetime 
+import re
 from PIL import Image
 from dotenv import load_dotenv
 
@@ -15,48 +16,60 @@ class GeminiService:
         self.model = genai.GenerativeModel('gemini-2.5-flash')
 
     def analizar_contenido(self, texto: str = None, imagen_bytes: bytes = None):
+        fecha_actual = datetime.datetime.now().strftime("%d/%m/%Y")
+        prompt = """
+Eres un analista experto en verificación de hechos, desinformación y ciberseguridad.
+Hoy es FECHA_ACTUAL. Analiza el contenido con rigor profesional y periodístico.
 
-        fecha_actual = datetime.datetime.now().strftime("%d de %B de %Y")
-        
-        prompt = f"""
-        Eres un experto analista de ciberseguridad y fact-checking. 
-        
-        🚨 CONTEXTO TEMPORAL CRÍTICO: Hoy es {fecha_actual}. 
-        Cualquier noticia, periódico o evento con fecha igual o anterior a hoy es COMPLETAMENTE VÁLIDO y corresponde al pasado o presente. NO catalogues nada como falso solo por tener fecha de 2024, 2025 o 2026.
-        
-        Analiza el contenido y responde ÚNICA Y EXCLUSIVAMENTE con un objeto JSON válido:
-        
-        TAREA CRÍTICA - GENERACIÓN DE FUENTES:
-        1. Identifica el "TEMA PRINCIPAL" de la noticia (ej. "Terremoto en Japón", "Nueva ley de impuestos", "Cura del cáncer"). Máximo 5 palabras.
-        2. Convierte los espacios de ese tema en el símbolo "+" (ej. "Terremoto+en+Japon").
-        3. Construye EXACTAMENTE estos 3 enlaces usando ese tema convertido:
-           - Enlace 1 (Google Noticias): https://news.google.com/search?q=[TEMA_CON_MAS]
-           - Enlace 2 (Búsqueda de desmentidos): https://www.google.com/search?q=[TEMA_CON_MAS]+verdad+o+falso+fact+check
-           - Enlace 3 (Búsqueda en agencias oficiales): https://www.google.com/search?q=site:factual.afp.com+OR+site:chequeado.com+OR+site:reuters.com+[TEMA_CON_MAS]
-        
-        Responde ÚNICA Y EXCLUSIVAMENTE con un objeto JSON válido con esta estructura exacta:
-        {{
-            "resultado": "Real" o "Fake",
-            "score_credibilidad": 85.5,
-            "nivel_credibilidad": "alta",
-            "detalles": "Explicación técnica de por qué es real o fake...",
-            "recomendacion": "Recomendación para el usuario...",
-            "fuentes": [
-                {{
-                    "nombre": "📰 Ver cobertura en Google Noticias",
-                    "url": "https://news.google.com/search?q=..."
-                }},
-                {{
-                    "nombre": "🔎 Buscar análisis de Fact-Checkers",
-                    "url": "https://www.google.com/search?q=..."
-                }},
-                {{
-                    "nombre": "🛡️ Revisar en Agencias Oficiales (AFP/Reuters)",
-                    "url": "https://www.google.com/search?q=site:factual.afp.com+..."
-                }}
-            ]
-        }}
-        """
+REGLAS CRÍTICAS:
+- Si es imagen: extrae TODO el texto visible y analiza también el contexto visual.
+- Si es URL: evalúa el enlace como contenido a verificar, identifica dominio, señales de confiabilidad y afirmación central.
+- Si es texto: identifica la afirmación principal, hechos verificables, omisiones y lenguaje manipulador.
+- score_credibilidad: entero entre 0 y 100. NO uses decimales ni porcentajes.
+  * 0–25: Desinformación evidente, fabricación o manipulación grave
+  * 26–50: Contenido engañoso, mezcla de hechos y falsedades, contexto distorsionado
+  * 51–70: Parcialmente verificable, falta contexto o tiene imprecisiones
+  * 71–85: Mayormente verídico, pequeñas imprecisiones o falta de fuentes
+  * 86–100: Verificable y confiable con fuentes sólidas
+- resultado: "Real" si score > 65, "Fake" si score <= 65
+- Sé específico y técnico. Evita respuestas genéricas.
+- No agrupes todo en un solo párrafo. Cada campo debe aportar una parte distinta del análisis.
+- "detalles" debe tener 2 a 4 párrafos breves separados por saltos de línea, no una lista interminable.
+- "indicadores" debe incluir entre 3 y 6 objetos con señales concretas.
+- "tecnicas_manipulacion" debe ser una lista de strings; si no aplica, [].
+
+CONSTRUCCIÓN DE FUENTES (obligatorio):
+1. Identifica el TEMA PRINCIPAL en máximo 5 palabras.
+2. Reemplaza espacios con "+" (ej: "vacuna+covid+efectividad").
+3. Construye exactamente estos 3 URLs con ese tema:
+   - https://news.google.com/search?q=[TEMA]
+   - https://www.google.com/search?q=[TEMA]+fact+check+verdad+falso
+   - https://www.google.com/search?q=site:factual.afp.com+OR+site:chequeado.com+OR+site:reuters.com+[TEMA]
+
+Responde ÚNICAMENTE con JSON válido sin markdown ni texto adicional:
+{
+    "resultado": "Real",
+    "score_credibilidad": 78,
+    "nivel_credibilidad": "alta",
+    "nivel_riesgo": "Bajo",
+    "veredicto_corto": "Una sola oración que resume el veredicto final",
+    "analisis_contenido": "Descripción objetiva de qué afirma o muestra el contenido analizado",
+    "indicadores": [
+        {"tipo": "positivo", "descripcion": "Elemento que apoya la veracidad del contenido"},
+        {"tipo": "negativo", "descripcion": "Elemento que señala falsedad o manipulación"},
+        {"tipo": "neutro", "descripcion": "Dato contextual relevante sin valor de verdad claro"}
+    ],
+    "contexto_factual": "Contexto histórico, científico o factual necesario para evaluar correctamente el contenido",
+    "tecnicas_manipulacion": ["Nombre de técnica detectada si aplica, lista vacía si no hay"],
+    "detalles": "Análisis completo y detallado con argumentación técnica sobre cada aspecto del contenido",
+    "recomendacion": "Instrucción concreta sobre qué debería hacer el usuario con este contenido",
+    "fuentes": [
+        {"nombre": "📰 Ver cobertura en Google Noticias", "url": "https://news.google.com/search?q=..."},
+        {"nombre": "🔎 Buscar análisis de Fact-Checkers", "url": "https://www.google.com/search?q=..."},
+        {"nombre": "🛡️ Verificar en Agencias Oficiales (AFP/Reuters)", "url": "https://www.google.com/search?q=site:factual.afp.com+..."}
+    ]
+}
+""".replace("FECHA_ACTUAL", fecha_actual)
         
         contenido_a_enviar = [prompt]
         
@@ -71,8 +84,27 @@ class GeminiService:
                 raise Exception(f"No se pudo procesar la imagen: {str(e)}")
             
         try:
-            respuesta = self.model.generate_content(contenido_a_enviar)
-            texto_limpio = respuesta.text.replace('```json', '').replace('```', '').strip()
-            return json.loads(texto_limpio)
+            respuesta = self.model.generate_content(
+                contenido_a_enviar,
+                generation_config={
+                    "temperature": 0.2,
+                    "response_mime_type": "application/json",
+                }
+            )
+            usage = getattr(respuesta, 'usage_metadata', None)
+            tokens_used = getattr(usage, 'total_token_count', 0) if usage else 0
+            resultado = self._parsear_json_respuesta(respuesta.text)
+            resultado['tokens_used'] = tokens_used
+            return resultado
         except Exception as e:
             raise Exception(f"Error en la IA: {str(e)}")
+
+    def _parsear_json_respuesta(self, texto_respuesta: str):
+        texto_limpio = texto_respuesta.replace('```json', '').replace('```', '').strip()
+        try:
+            return json.loads(texto_limpio)
+        except json.JSONDecodeError:
+            match = re.search(r"\{.*\}", texto_limpio, re.DOTALL)
+            if match:
+                return json.loads(match.group(0))
+            raise

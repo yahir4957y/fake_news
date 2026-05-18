@@ -1,0 +1,254 @@
+/* Fondo full-screen — cubre todo el viewport */
+.token-page {
+  min-height: 100vh;
+  width: 100%;
+  background: radial-gradient(circle at top, rgba(59, 130, 246, 0.14), transparent 28%),
+              linear-gradient(180deg, #020617 0%, #071023 100%);
+  color: #f8fafc;
+}
+
+/* Área de contenido centrada con ancho máximo */
+.token-container {
+  width: 100%;
+  max-width: 1300px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 3rem;
+  box-sizing: border-box;
+}
+
+.token-header {
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  margin-bottom: 1.8rem;
+}
+
+.token-title-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.token-page-tag {
+  padding: 0.45rem 0.85rem;
+  background: rgba(96, 165, 250, 0.12);
+  color: #93c5fd;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  width: fit-content;
+}
+
+.token-back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: rgba(59, 130, 246, 0.14);
+  border: 1px solid rgba(59, 130, 246, 0.28);
+  color: #e2e8f0;
+  padding: 0.65rem 1rem;
+  border-radius: 999px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  margin-bottom: 0;
+  transition: background 0.2s, color 0.2s, transform 0.2s;
+}
+.token-back-btn:hover {
+  background: rgba(59, 130, 246, 0.22);
+  color: #f8fafc;
+  transform: translateY(-1px);
+}
+
+.token-container h1 {
+  font-size: clamp(1.8rem, 2.8vw, 2.8rem);
+  font-weight: 800;
+  margin: 0;
+  color: #f8fafc;
+  letter-spacing: -0.03em;
+}
+
+.token-section {
+  margin-bottom: 2.5rem;
+  padding: 1.6rem 1.6rem 1.5rem;
+  background: rgba(15, 23, 42, 0.92);
+  border: 1px solid rgba(71, 85, 105, 0.26);
+  border-radius: 24px;
+}
+
+.token-section.token-main-section {
+  padding-top: 1.8rem;
+}
+
+.token-section h2 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #94a3b8;
+  margin-bottom: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* ── Tarjetas ── */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.stat-card {
+  background: rgba(15, 23, 42, 0.94);
+  border: 1px solid rgba(59, 130, 246, 0.16);
+  border-left: 4px solid rgba(59, 130, 246, 0.9);
+  border-radius: 18px;
+  padding: 1.4rem 1.5rem;
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+  min-height: 140px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+.stat-card.global {
+  background: linear-gradient(135deg, #1e3a5f, #0f172a);
+  border-color: #3b82f6;
+}
+
+.stat-label {
+  font-size: 0.75rem;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 0 0 0.5rem 0;
+}
+.stat-value {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #f8fafc;
+  margin: 0;
+  word-break: normal;
+  overflow-wrap: anywhere;
+}
+.stat-card.global .stat-value {
+  color: #60a5fa;
+}
+
+/* ── Tabla ── */
+.table-container {
+  overflow-x: auto;
+  border-radius: 20px;
+  border: 1px solid rgba(59, 130, 246, 0.16);
+  background: rgba(15, 23, 42, 0.9);
+}
+
+.table-responsive {
+  padding: 0.5rem;
+}
+
+table {
+  width: 100%;
+  min-width: 720px;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 0.9rem;
+}
+
+thead {
+  background: #1e293b;
+}
+thead th {
+  padding: 0.85rem 1rem;
+  text-align: left;
+  color: #94a3b8;
+  font-weight: 600;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+tbody tr {
+  border-top: 1px solid #1e293b;
+  transition: background 0.15s;
+}
+tbody tr:hover {
+  background: #1e293b;
+}
+
+tbody td {
+  padding: 0.95rem 1rem;
+  color: #cbd5e1;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+tbody tr:first-child td:first-child {
+  color: #60a5fa;
+  font-weight: 600;
+}
+
+.token-empty {
+  color: #94a3b8;
+  font-size: 0.95rem;
+  padding: 1rem 0;
+}
+
+/* ── Loading ── */
+.token-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 60vh;
+  color: #3b82f6;
+  font-size: 1.1rem;
+}
+
+@media (max-width: 980px) {
+  .token-container {
+    padding: 1.8rem 1.2rem 2.4rem;
+  }
+
+  .token-header {
+    align-items: center;
+  }
+}
+
+@media (max-width: 760px) {
+  .token-container {
+    padding: 1.2rem 1rem 1.8rem;
+  }
+
+  .token-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .token-back-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .token-title-group {
+    width: 100%;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .table-container {
+    border-radius: 16px;
+  }
+
+  table {
+    min-width: 100%;
+  }
+
+  thead th,
+  tbody td {
+    padding: 0.8rem 0.9rem;
+  }
+}

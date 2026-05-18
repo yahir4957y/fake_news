@@ -157,6 +157,34 @@
   gap: 1.5rem;
 }
 
+.dashboard-nav {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: #020617;
+  border: 1px solid #1e293b;
+  border-radius: 8px;
+  padding: 4px;
+}
+
+.dashboard-nav-btn {
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  color: #94a3b8;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 0.45rem 0.8rem;
+  transition: background 0.2s, color 0.2s;
+}
+
+.dashboard-nav-btn:hover,
+.dashboard-nav-btn.active {
+  background: #1e293b;
+  color: #f8fafc;
+}
+
 .user-info {
   display: flex;
   flex-direction: column;
@@ -175,6 +203,10 @@
 
 /* SIDEBAR Y FILTROS */
 .dashboard-main { display: flex; flex: 1; overflow: hidden; }
+.dashboard-main-full {
+  height: calc(100vh - 75px);
+  overflow-y: auto;
+}
 .sidebar {
   width: 280px; background: #0f172a;
   border-right: 1px solid rgba(255,255,255,0.05);

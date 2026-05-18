@@ -9,3 +9,4 @@ python-jose
 requests
 beautifulsoup4
 yt-dlp
+reportlab
