@@ -7,6 +7,8 @@ env/
 .env
 .env.*
 *.pem
+!.env.example
+
 
 # Archivos cacheados de Python
 __pycache__/
